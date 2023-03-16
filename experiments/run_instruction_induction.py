@@ -43,7 +43,7 @@ def run(task):
             'num_prompts_per_subsample': 30,
             'model': {
                 'gpt_config': {
-                    # 'model': 'text-ada-001'
+                    'model': 'text-ada-001'
                 }
             }
         },
@@ -53,7 +53,7 @@ def run(task):
             'num_samples': min(20, len(eval_data[0])),
             'model': {
                 'gpt_config': {
-                    # 'model': 'text-ada-001'
+                    'model': 'text-ada-001'
                 }
             }
         }
