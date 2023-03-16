@@ -37,7 +37,7 @@ def run():
                 'name': 'GPT_insert',
                 'batch_size': 1,
                 'gpt_config': {
-                    # 'model': 'text-ada-001'
+                    'model': 'text-ada-001'
                 }
             }
         },
@@ -46,7 +46,7 @@ def run():
             'num_samples': 10,
             'model': {
                 'gpt_config': {
-                    # 'model': 'text-curie-001'
+                    'model': 'text-curie-001'
                 }
             }
         }
@@ -75,7 +75,9 @@ def run():
             indented_print(f'{score}: {prompt}')
 
         # Save the prompts and scores
-        with open(f'experiments/results/truthful_qa/{comb_name}.txt', 'w') as f:
+        out_file = Path(f'experiments/results/truthful_qa/{comb_name}.txt')
+        out_file.parent.mkdir(exist_ok=True, parents=True)
+        with out_file.open(mode='w') as f:
             for prompt, score in list(zip(prompts, scores)):
                 f.write(f'Score: {score:.2f}\nPrompt:{prompt}\n')
 

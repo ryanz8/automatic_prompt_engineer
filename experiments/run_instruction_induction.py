@@ -6,6 +6,8 @@ from automatic_prompt_engineer import ape, data
 from experiments.data.instruction_induction.load_data import load_data, tasks
 from experiments.evaluation.instruction_induction.exec_accuracy import exec_accuracy_evaluator
 
+from pathlib import Path
+
 sub_tasks = ['antonyms', 'cause_and_effect', 'common_concept', 'diff', 'first_word_letter',
              'informal_to_formal', 'larger_animal', 'letters_list', 'taxonomy_animal', 'negation', 'num_to_verbal',
              'active_to_passive', 'singular_to_plural', 'rhymes',
@@ -112,7 +114,9 @@ def run(task):
     print(f'Test score: {test_score}')
 
     # Save a text file to experiments/results/instruction_induction/task.txt with the best prompt and test score
-    with open(f'experiments/results/instruction_induction/{task}.txt', 'w') as f:
+    out_file = Path(f'experiments/results/instruction_induction/{task}.txt')
+    out_file.parent.mkdir(exist_ok=True, parents=True)
+    with out_file.open(mode='w') as f:
         f.write(f'Test score: {test_score}\n')
         f.write(f'Prompt: {prompts[0]}\n')
 
