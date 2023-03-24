@@ -155,18 +155,23 @@ class GPT_Forward(LLM):
         for i in range(len(prompt)):
             prompt[i] = prompt[i].replace('[APE]', '').strip()
         response = None
-        while response is None:
-            try:
-                response = openai.Completion.create(
-                    **config, prompt=prompt)
-            except Exception as e:
-                if 'is greater than the maximum' in str(e):
-                    raise BatchSizeException()
-                print(e)
-                print('Retrying...')
-                time.sleep(5)
 
-        return [response['choices'][i]['text'] for i in range(len(response['choices']))]
+        # TODO: Add local inference
+        if self.config['local_inference']:
+            raise NotImplementedError()
+        else:
+            while response is None:
+                try:
+                    response = openai.Completion.create(
+                        **config, prompt=prompt)
+                except Exception as e:
+                    if 'is greater than the maximum' in str(e):
+                        raise BatchSizeException()
+                    print(e)
+                    print('Retrying...')
+                    time.sleep(5)
+
+            return [response['choices'][i]['text'] for i in range(len(response['choices']))]
 
     def __complete(self, prompt, n):
         """Generates text from the model and returns the log prob data."""
@@ -178,15 +183,22 @@ class GPT_Forward(LLM):
         for i in range(len(prompt)):
             prompt[i] = prompt[i].replace('[APE]', '').strip()
         response = None
-        while response is None:
-            try:
-                response = openai.Completion.create(
-                    **config, prompt=prompt)
-            except Exception as e:
-                print(e)
-                print('Retrying...')
-                time.sleep(5)
-        return response['choices']
+
+        # TODO: Add local inference
+        if self.config['local_inference']:
+            raise NotImplementedError()
+        else:
+            while response is None:
+                try:
+                    response = openai.Completion.create(
+                        **config, prompt=prompt)
+                except Exception as e:
+                    print(e)
+                    print('Retrying...')
+                    time.sleep(5)
+            completions = response['choices']
+            
+        return completions
 
     def __log_probs(self, text, log_prob_range=None):
         """Returns the log probs of the text."""
@@ -207,33 +219,38 @@ class GPT_Forward(LLM):
         else:
             text = f'\n{text}'
         response = None
-        while response is None:
-            try:
-                response = openai.Completion.create(
-                    **config, prompt=text)
-            except Exception as e:
-                print(e)
-                print('Retrying...')
-                time.sleep(5)
-        log_probs = [response['choices'][i]['logprobs']['token_logprobs'][1:]
-                     for i in range(len(response['choices']))]
-        tokens = [response['choices'][i]['logprobs']['tokens'][1:]
-                  for i in range(len(response['choices']))]
-        offsets = [response['choices'][i]['logprobs']['text_offset'][1:]
-                   for i in range(len(response['choices']))]
 
-        # Subtract 1 from the offsets to account for the newline
-        for i in range(len(offsets)):
-            offsets[i] = [offset - 1 for offset in offsets[i]]
+        # TODO: Add local inference
+        if self.config['local_inference']:
+            raise NotImplementedError()
+        else:
+            while response is None:
+                try:
+                    response = openai.Completion.create(
+                        **config, prompt=text)
+                except Exception as e:
+                    print(e)
+                    print('Retrying...')
+                    time.sleep(5)
+            log_probs = [response['choices'][i]['logprobs']['token_logprobs'][1:]
+                        for i in range(len(response['choices']))]
+            tokens = [response['choices'][i]['logprobs']['tokens'][1:]
+                    for i in range(len(response['choices']))]
+            offsets = [response['choices'][i]['logprobs']['text_offset'][1:]
+                    for i in range(len(response['choices']))]
 
-        if log_prob_range is not None:
-            # First, we need to find the indices of the tokens in the log probs
-            # that correspond to the tokens in the log_prob_range
-            for i in range(len(log_probs)):
-                lower_index, upper_index = self.get_token_indices(
-                    offsets[i], log_prob_range[i])
-                log_probs[i] = log_probs[i][lower_index:upper_index]
-                tokens[i] = tokens[i][lower_index:upper_index]
+            # Subtract 1 from the offsets to account for the newline
+            for i in range(len(offsets)):
+                offsets[i] = [offset - 1 for offset in offsets[i]]
+
+            if log_prob_range is not None:
+                # First, we need to find the indices of the tokens in the log probs
+                # that correspond to the tokens in the log_prob_range
+                for i in range(len(log_probs)):
+                    lower_index, upper_index = self.get_token_indices(
+                        offsets[i], log_prob_range[i])
+                    log_probs[i] = log_probs[i][lower_index:upper_index]
+                    tokens[i] = tokens[i][lower_index:upper_index]
 
         return log_probs, tokens
 
