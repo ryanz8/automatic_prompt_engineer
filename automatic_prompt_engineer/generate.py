@@ -1,5 +1,7 @@
 from faulthandler import disable
 from automatic_prompt_engineer import data, llm
+from automatic_prompt_engineer.template import DemosTemplate, GenerationTemplate
+from typing import List
 
 
 def get_query(prompt_gen_template, demos_template, subsampled_data):
@@ -17,13 +19,18 @@ def get_query(prompt_gen_template, demos_template, subsampled_data):
     return prompt_gen_template.fill(input=inputs[0], output=outputs[0], full_demo=demos)
 
 
-def generate_prompts(prompt_gen_template, demos_template, prompt_gen_data, config):
+def generate_prompts(
+    prompt_gen_template: GenerationTemplate,
+    demos_template: DemosTemplate,
+    prompt_gen_data: tuple[List, List],
+    config: dict):
     """
-    Generates prompts using the prompt generator.
+    Generates prompts using the prompt generator. 
+
     Parameters:
-        prompt_gen_template: The template for the prompt generator queries.
-        demos_template: The template for the demonstrations.
-        prompt_gen_data: The data to use for prompt generation.
+        prompt_gen_template (GenerationTemplate): The template for the prompt generator queries.
+        demos_template (DemosTemplate): The template for the demonstrations.
+        prompt_gen_data (tuple): Tuple of (inputs[List], outputs[List]) for the prompt generator.
         config: The configuration dictionary.
     Returns:
         A list of prompts.
