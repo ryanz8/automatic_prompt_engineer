@@ -1,0 +1,45 @@
+generation:
+  num_subsamples: 5
+  num_demos: 5
+  num_prompts_per_subsample: 50
+  model:
+    name: GPT_forward
+    batch_size: 500
+    gpt_config:
+      model: text-davinci-002
+      temperature: 0.9
+      max_tokens: 50
+      top_p: 0.9
+      frequency_penalty: 0.0
+      presence_penalty: 0.0
+evaluation:
+  method: ea
+  rounds: 5
+  num_prompts_per_round: 50
+  ea_method: tournament
+  pop_size: 20
+  base_eval_method: likelihood
+  base_eval_config:
+    num_samples: 50
+    num_few_shot: 5
+    model:
+      name: GPT_forward
+      batch_size: 500
+      gpt_config:
+        model: text-davinci-002
+        temperature: 0.7
+        max_tokens: 200
+        top_p: 1.0
+        frequency_penalty: 0.0
+        presence_penalty: 0.0
+demo:
+  model:
+    name: GPT_forward
+    batch_size: 500
+    gpt_config:
+      model: text-davinci-002
+      temperature: 0.7
+      max_tokens: 200
+      top_p: 1.0
+      frequency_penalty: 0.0
+      presence_penalty: 0.0

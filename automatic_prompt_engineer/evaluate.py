@@ -20,6 +20,9 @@ def get_eval_method(eval_method):
     elif eval_method == 'bandits':
         from automatic_prompt_engineer.evaluation import bandits
         return bandits.bandits_evaluator
+    elif eval_method == 'ea':
+        from automatic_prompt_engineer.evaluation import ea
+        return ea.ea_evaluator
     else:
         raise ValueError('Invalid evaluation method.')
 
@@ -36,6 +39,7 @@ def evalute_prompts(prompts, eval_template, eval_data, demos_template, few_shot_
     Returns:
         An evaluation result object.
     """
+    print(eval_method)
     eval_method = get_eval_method(eval_method)
     return eval_method(prompts, eval_template, eval_data, demos_template, few_shot_data, config)
 

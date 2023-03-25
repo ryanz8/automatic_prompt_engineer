@@ -51,9 +51,12 @@ def simple_ape(dataset,
     """
     prompt_gen_template = get_simple_prompt_gen_template(
         prompt_gen_template, prompt_gen_mode)
-    conf = config.simple_config(
-        eval_model, prompt_gen_model, prompt_gen_mode, num_prompts, eval_rounds, prompt_gen_batch_size, eval_batch_size)
-    return find_prompts(eval_template, demos_template, dataset, dataset, conf, prompt_gen_template=prompt_gen_template)
+    conf = config.update_config({},'configs/ea.yaml')
+
+    # conf = config.simple_config(
+    #     eval_model, prompt_gen_model, prompt_gen_mode, num_prompts, eval_rounds, prompt_gen_batch_size, eval_batch_size)
+    print('go gind ea!')
+    return find_prompts_ea(eval_template, demos_template, dataset, dataset, conf, prompt_gen_template=prompt_gen_template)
 
 
 def simple_eval(dataset,
@@ -75,9 +78,10 @@ def simple_eval(dataset,
     """
     eval_template = template.EvalTemplate(eval_template)
     demos_template = template.DemosTemplate(demos_template)
-    conf = config.update_config({}, 'configs/default.yaml')
-    conf['evaluation']['model']['gpt_config']['model'] = eval_model
+    conf = config.update_config({}, 'configs/ea.yaml')
+    conf['evaluation']['base_eval_config']['model']['gpt_config']['model'] = eval_model
     conf['evaluation']['num_samples'] = min(len(dataset[0]), num_samples)
+
     res = evaluate.evalute_prompts(
         prompts, eval_template, dataset, demos_template, dataset, conf['evaluation']['method'], conf['evaluation'])
     return res
@@ -157,7 +161,62 @@ def find_prompts(eval_template,
     demo_fn = evaluate.demo_function(eval_template, conf['demo'])
 
     return res, demo_fn
+def find_prompts_ea(eval_template,
+                 demos_template,
+                 prompt_gen_data,
+                 eval_data,
+                 conf,
+                 base_conf='configs/default.yaml',
+                 few_shot_data=None,
+                 prompt_gen_template=None):
+    """
+    Function to generate prompts using APE.
+    Parameters:
+        eval_template: The template for the evaluation queries.
+        demos_template: The template for the demos.
+        prompt_gen_data: The data to use for prompt generation.
+        eval_data: The data to use for evaluation.
+        conf: The configuration dictionary.
+        few_shot_data: The data to use for demonstrations during eval (not implemented yet).
+        eval_method: The evaluation method to use. ('likelihood')
+        prompt_gen_template: The template to use for prompt generation.
+        verbosity: The verbosity level.
+    Returns:
+        An evaluation result. Also returns a function to evaluate the prompts with new inputs.
+    """
 
+    conf = config.update_config(conf, base_conf)
+
+    # Generate prompts
+    eval_template = template.EvalTemplate(eval_template)
+    demos_template = template.DemosTemplate(demos_template)
+    if prompt_gen_template is None:
+        prompt_gen_template = eval_template.convert_to_generation_template()
+    else:
+        prompt_gen_template = template.GenerationTemplate(prompt_gen_template)
+
+    if few_shot_data is None:
+        few_shot_data = prompt_gen_data
+
+    print('Generating prompts...')
+    # prompts = generate.generate_prompts(
+    #     prompt_gen_template, demos_template, prompt_gen_data, conf['generation'])
+    prompts=[' reverse the word.', ' reverse the order of the words in the input.', ' reverse the word.', ' reverse the order of the words in each input-output pair.', ' reverse the order of the letters in each word.', ' reverse the input-output pairs.', ' reverse the word.', ' reverse the word.', ' reverse the word.', ' reverse the input-output pairs.', ' find words that have the opposite meaning.', ' turn the word around.', ' produce an antonym (opposite) for each word given.', ' produce an antonym (opposite) for each word provided.', ' find words that have the opposite meaning.', " add the prefix 'un-' to each word.", ' reverse the input-output pairs.', ' find words that have the opposite meaning.', ' reverse the input.', ' use antonyms.', ' reverse the input.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' produce the opposite of the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the input.', ' reverse the input.']
+
+    print('Model returned {} prompts. Deduplicating...'.format(len(prompts)))
+    prompts = list(set(prompts))
+    print('Deduplicated to {} prompts.'.format(len(prompts)))
+
+    print('Evaluating prompts...', conf['evaluation']['method'])
+
+    res = evaluate.evalute_prompts(prompts, eval_template, eval_data, demos_template, few_shot_data,
+                                   conf['evaluation']['method'], conf['evaluation'])
+    demo_fn= 1
+    print('Finished evaluating.')
+
+    # demo_fn = evaluate.demo_function(eval_template, conf['demo'])
+
+    return res, demo_fn,prompts
 
 def evaluate_prompts(prompts, eval_template, eval_data, demos_template, few_shot_data, conf,
                      base_conf='configs/default.yaml'):
@@ -312,3 +371,5 @@ def get_evaluation_query(eval_template,
                            output_, demo_data, demos_template)[0]
         queries.append(query)
     return queries
+
+
