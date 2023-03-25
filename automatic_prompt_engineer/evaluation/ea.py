@@ -164,7 +164,7 @@ def crossover_prompts(parent1, parent2, crossover_rate=0.5):
     return child1, child2
 
 
-def mutate_prompt(prompt, mutation_rate=0.05):
+def mutate_prompt(prompt, mutation_rate=0.005):
     """Mutate a prompt by randomly changing  its characters."""
     mutated = list(prompt)
     for i in range(len(mutated)):
