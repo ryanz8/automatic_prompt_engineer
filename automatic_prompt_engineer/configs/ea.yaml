@@ -1,7 +1,7 @@
 generation:
   num_subsamples: 5
   num_demos: 5
-  num_prompts_per_subsample: 50
+  num_prompts_per_subsample: 30
   model:
     name: GPT_forward
     batch_size: 500
@@ -12,6 +12,7 @@ generation:
       top_p: 0.9
       frequency_penalty: 0.0
       presence_penalty: 0.0
+      local_inference: True
 evaluation:
   method: ea
   rounds: 5
@@ -32,6 +33,7 @@ evaluation:
         top_p: 1.0
         frequency_penalty: 0.0
         presence_penalty: 0.0
+        local_inference: True
 demo:
   model:
     name: GPT_forward
@@ -43,3 +45,4 @@ demo:
       top_p: 1.0
       frequency_penalty: 0.0
       presence_penalty: 0.0
+      local_inference: True

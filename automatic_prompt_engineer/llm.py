@@ -7,6 +7,11 @@ from abc import ABC, abstractmethod
 
 import openai
 
+
+from transformers import T5Tokenizer, T5ForConditionalGeneration
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+
 gpt_costs_per_thousand = {
     'davinci': 0.0200,
     'curie': 0.0020,
@@ -24,6 +29,41 @@ def model_from_config(config, disable_tqdm=True):
         return GPT_Insert(config, disable_tqdm=disable_tqdm)
     raise ValueError(f"Unknown model type: {model_type}")
 
+def do_predict(input_texts, model, tokenizer, n=1):
+    """
+    Takes in a list of text inputs and generates output text for each input using the model and tokenizer.
+
+    Args:
+        input_texts (List[str]): List of text inputs to be used as input to the model.
+        model (transformers.PreTrainedModel): Model to be used for prediction.
+        tokenizer (transformers.PreTrainedTokenizer): Tokenizer to be used for prediction.
+        n (int, optional): Number of predictions to generate for each input. Defaults to 1.
+
+    Returns:
+        List[str]: List of generated text.
+    """
+    # Encode the input texts
+    input_ids = tokenizer(input_texts, return_tensors="pt", padding=True, truncation=True).input_ids.to(model.device)
+
+    # Generate output with the model
+    outputs = model.generate(
+        input_ids,
+        max_length=30,
+        num_return_sequences=n,
+        do_sample=True,
+        return_dict_in_generate=True,
+        output_scores=True)
+
+    # Get the generated tokens
+    generated_tokens = outputs.sequences
+
+    # Convert tokens to text
+    generated_texts = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)
+
+    # Calculate log probabilities
+    # logprobs = sum([torch.log_softmax(score, dim=-1).gather(1, token.view(-1, 1)).squeeze() for score, token in zip(outputs.scores, generated_tokens)])
+
+    return generated_texts
 
 class LLM(ABC):
     """Abstract base class for large language models."""
@@ -59,6 +99,9 @@ class GPT_Forward(LLM):
         self.config = config
         self.needs_confirmation = needs_confirmation
         self.disable_tqdm = disable_tqdm
+
+        self.tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-large")
+        self.model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-large", device_map="auto")
 
     def confirm_cost(self, texts, n, max_tokens):
         total_estimated_cost = 0
@@ -157,8 +200,9 @@ class GPT_Forward(LLM):
         response = None
 
         # TODO: Add local inference
-        if self.config['local_inference']:
-            raise NotImplementedError()
+        if config['local_inference']:
+            # raise NotImplementedError()
+            return do_predict(prompt, self.model, self.tokenizer, n=config['n'])
         else:
             while response is None:
                 try:
@@ -185,7 +229,7 @@ class GPT_Forward(LLM):
         response = None
 
         # TODO: Add local inference
-        if self.config['local_inference']:
+        if config['local_inference']:
             raise NotImplementedError()
         else:
             while response is None:
