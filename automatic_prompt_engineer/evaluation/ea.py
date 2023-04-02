@@ -47,7 +47,28 @@ def ea_evaluator(prompts, eval_template, eval_data, demos_template, few_shot_dat
 
         # ea_algo.update(sampled_prompts_idx, scores) todo
     return EAEvaluationResult(prompts, ea_algo.get_scores(), ea_algo.get_infos())
+def evolution(prompts, config):#todo
+    base_eval_method = evaluate.get_eval_method(config['base_eval_method'])
 
+    ea_algo = get_ea_algo(config['ea_method'], len(prompts), config)
+    rounds = config['rounds']
+
+    for i in range(rounds):
+        parent1,parent2= tournament_selection(prompts, ea_algo.scores, 2)
+        child1,child2=crossover_prompts(prompts[parent1], prompts[parent2], crossover_rate=0.5)
+        print('child',child1,child2)
+        child1=mutate_prompt(child1)
+        child2=mutate_prompt(child2)
+        print('mutate',child1,child2)
+        prompts.append(child1)
+        prompts.append(child2)
+        prompts.pop(random.randint(0,len(prompts)-1))
+        prompts.pop(random.randint(0, len(prompts) - 1))
+        np.append(ea_algo.scores,0)
+        np.append(ea_algo.scores,0)
+
+        # ea_algo.update(sampled_prompts_idx, scores) todo
+    return EAEvaluationResult(prompts, ea_algo.get_scores(), ea_algo.get_infos())
 def get_ea_algo(ea_method, num_prompts, config):
     if ea_method == 'tournament':
         pop_size = config['pop_size']

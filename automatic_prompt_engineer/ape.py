@@ -1,6 +1,6 @@
 import random
 from automatic_prompt_engineer import generate, evaluate, config, template, data, llm
-
+import evaluation.ea as ea
 
 def get_simple_prompt_gen_template(prompt_gen_template, prompt_gen_mode):
     if prompt_gen_template is None:
@@ -213,14 +213,14 @@ def find_prompts_ea(eval_template,
     print('Evaluating prompts...', conf['evaluation']['method'])
 
     # begin loop for n generations
-        # fitness eval of population of prompts
+
+    # fitness eval of population of prompts
     res = evaluate.evalute_prompts(prompts, eval_template, eval_data, demos_template, few_shot_data,
                                    conf['evaluation']['method'], conf['evaluation'])
+    print('evolution algorithm')
+    # write a function for a ea loop by inputting current population selection, mutation + crossover loop
+    res = ea.evolution(prompts)
 
-        # selection, mutation + crossover
-    # end loop
-
-    # final fitness eval
 
     demo_fn= 1
     print('Finished evaluating.')
