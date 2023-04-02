@@ -161,6 +161,7 @@ def find_prompts(eval_template,
     demo_fn = evaluate.demo_function(eval_template, conf['demo'])
 
     return res, demo_fn
+
 def find_prompts_ea(eval_template,
                  demos_template,
                  prompt_gen_data,
@@ -201,17 +202,25 @@ def find_prompts_ea(eval_template,
     print('Generating prompts...')
     prompts = generate.generate_prompts(
         prompt_gen_template, demos_template, prompt_gen_data, conf['generation'])
-    prompts=[' reverse the word.', ' reverse the order of the words in the input.', ' reverse the word.', ' reverse the order of the words in each input-output pair.', ' reverse the order of the letters in each word.', ' reverse the input-output pairs.', ' reverse the word.', ' reverse the word.', ' reverse the word.', ' reverse the input-output pairs.', ' find words that have the opposite meaning.', ' turn the word around.', ' produce an antonym (opposite) for each word given.', ' produce an antonym (opposite) for each word provided.', ' find words that have the opposite meaning.', " add the prefix 'un-' to each word.", ' reverse the input-output pairs.', ' find words that have the opposite meaning.', ' reverse the input.', ' use antonyms.', ' reverse the input.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' produce the opposite of the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the input.', ' reverse the input.']
+    # prompts=[' reverse the word.', ' reverse the order of the words in the input.', ' reverse the word.', ' reverse the order of the words in each input-output pair.', ' reverse the order of the letters in each word.', ' reverse the input-output pairs.', ' reverse the word.', ' reverse the word.', ' reverse the word.', ' reverse the input-output pairs.', ' find words that have the opposite meaning.', ' turn the word around.', ' produce an antonym (opposite) for each word given.', ' produce an antonym (opposite) for each word provided.', ' find words that have the opposite meaning.', " add the prefix 'un-' to each word.", ' reverse the input-output pairs.', ' find words that have the opposite meaning.', ' reverse the input.', ' use antonyms.', ' reverse the input.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' produce the opposite of the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the input.', ' reverse the word.', ' reverse the input.', ' reverse the input.', ' reverse the input.']
 
     print('Model returned {} prompts. Deduplicating...'.format(len(prompts)))
     prompts = list(set(prompts))
     print('Deduplicated to {} prompts.'.format(len(prompts)))
-    print('First prompt:', prompts[0])
+    print(f'First 3 prompts: {prompts[0]}\n{prompts[1]}\n{prompts[2]}\n')
 
     print('Evaluating prompts...', conf['evaluation']['method'])
 
+    # loop
+        # fitness eval
     res = evaluate.evalute_prompts(prompts, eval_template, eval_data, demos_template, few_shot_data,
                                    conf['evaluation']['method'], conf['evaluation'])
+
+        # mutation + crossover
+    #loop
+
+    # final fitness eval
+
     demo_fn= 1
     print('Finished evaluating.')
 

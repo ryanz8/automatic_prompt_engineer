@@ -100,8 +100,9 @@ class GPT_Forward(LLM):
         self.needs_confirmation = needs_confirmation
         self.disable_tqdm = disable_tqdm
 
-        self.tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-large")
-        self.model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-large", device_map="auto")
+        if self.config['gpt_config']['local_inference']:
+            self.tokenizer = AutoTokenizer.from_pretrained(self.config['gpt_config']['model']) #"google/flan-t5-small"
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(self.config['gpt_config']['model'], device_map="auto")
 
     def confirm_cost(self, texts, n, max_tokens):
         total_estimated_cost = 0
