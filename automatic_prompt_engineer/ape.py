@@ -199,6 +199,7 @@ def find_prompts_ea(eval_template,
     if few_shot_data is None:
         few_shot_data = prompt_gen_data
 
+    # generate initial population of prompts
     print('Generating prompts...')
     prompts = generate.generate_prompts(
         prompt_gen_template, demos_template, prompt_gen_data, conf['generation'])
@@ -211,13 +212,13 @@ def find_prompts_ea(eval_template,
 
     print('Evaluating prompts...', conf['evaluation']['method'])
 
-    # loop
-        # fitness eval
+    # begin loop for n generations
+        # fitness eval of population of prompts
     res = evaluate.evalute_prompts(prompts, eval_template, eval_data, demos_template, few_shot_data,
                                    conf['evaluation']['method'], conf['evaluation'])
 
-        # mutation + crossover
-    #loop
+        # selection, mutation + crossover
+    # end loop
 
     # final fitness eval
 
