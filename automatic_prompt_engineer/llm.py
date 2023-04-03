@@ -266,7 +266,7 @@ class GPT_Forward(LLM):
         response = None
 
         # TODO: Add local inference
-        if self.config['local_inference']:
+        if config['local_inference']:
             raise NotImplementedError()
         else:
             while response is None:

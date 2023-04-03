@@ -20,7 +20,7 @@ Output: [OUTPUT]"""
 # Now, let's use APE to find prompts that generate antonyms for each word.
 from automatic_prompt_engineer import ape
 
-result, demo_fn,prompts = ape.simple_ape(
+result, demo_fn,prompts = ape.eape(
     dataset=(words, antonyms),
     eval_template=eval_template,
 )

@@ -12,8 +12,47 @@ def get_simple_prompt_gen_template(prompt_gen_template, prompt_gen_mode):
                 'Invalid prompt_gen_mode: {}'.format(prompt_gen_mode))
     return prompt_gen_template
 
-
 def simple_ape(dataset,
+               eval_template='Instruction: [PROMPT]\nInput: [INPUT]\nOutput: [OUTPUT]',
+               prompt_gen_template=None,
+               demos_template='Input: [INPUT]\nOutput: [OUTPUT]',
+               eval_model='text-davinci-002',
+               prompt_gen_model='text-davinci-002',
+               prompt_gen_mode='forward',
+               num_prompts=50,
+               eval_rounds=20,
+               prompt_gen_batch_size=200,
+               eval_batch_size=500):
+    """
+    Function that wraps the find_prompts function to make it easier to use.
+    Design goals: include default values for most parameters, and automatically
+    fill out the config dict for the user in a way that fits almost all use cases.
+    The main shortcuts this function takes are:
+    - Uses the same dataset for prompt generation, evaluation, and few shot demos
+    - Uses UCB algorithm for evaluation
+    - Fixes the number of prompts per round to num_prompts // 3  (so the first three rounds will
+        sample every prompt once)
+    - Fixes the number of samples per prompt per round to 5
+    Parameters:
+        dataset: The dataset to use for evaluation.
+        eval_template: The template for the evaluation queries.
+        prompt_gen_template: The template to use for prompt generation.
+        demos_template: The template for the demos.
+        eval_model: The model to use for evaluation.
+        prompt_gen_model: The model to use for prompt generation.
+        prompt_gen_mode: The mode to use for prompt generation.
+        num_prompts: The number of prompts to generate during the search.
+        eval_rounds: The number of evaluation rounds to run.
+    Returns:
+        An evaluation result and a function to evaluate the prompts with new inputs.
+    """
+    prompt_gen_template = get_simple_prompt_gen_template(
+        prompt_gen_template, prompt_gen_mode)
+    conf = config.simple_config(
+        eval_model, prompt_gen_model, prompt_gen_mode, num_prompts, eval_rounds, prompt_gen_batch_size, eval_batch_size)
+    return find_prompts(eval_template, demos_template, dataset, dataset, conf, prompt_gen_template=prompt_gen_template)
+
+def eape(dataset,
                eval_template='Instruction: [PROMPT]\nInput: [INPUT]\nOutput: [OUTPUT]',
                prompt_gen_template=None,
                demos_template='Input: [INPUT]\nOutput: [OUTPUT]',
@@ -52,9 +91,6 @@ def simple_ape(dataset,
         prompt_gen_template, prompt_gen_mode)
     conf = config.update_config({},'configs/ea.yaml')
 
-    # conf = config.simple_config(
-    #     eval_model, prompt_gen_model, prompt_gen_mode, num_prompts, eval_rounds, prompt_gen_batch_size, eval_batch_size)
-    print('go gind ea!')
     return find_prompts_ea(eval_template, demos_template, dataset, dataset, conf, prompt_gen_template=prompt_gen_template)
 
 
