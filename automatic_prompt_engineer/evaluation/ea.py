@@ -47,11 +47,10 @@ def ea_evaluator(prompts, eval_template, eval_data, demos_template, few_shot_dat
 
         # ea_algo.update(sampled_prompts_idx, scores) todo
     return EAEvaluationResult(prompts, ea_algo.get_scores(), ea_algo.get_infos())
-def evolution(prompts, config):#todo
-    base_eval_method = evaluate.get_eval_method(config['base_eval_method'])
-
-    ea_algo = get_ea_algo(config['ea_method'], len(prompts), config)
-    rounds = config['rounds']
+def evolution(prompts, config_dic):#todo
+    print(1111)
+    ea_algo = get_ea_algo(config_dic['ea_method'], len(prompts), config_dic)
+    rounds = config_dic['rounds']
 
     for i in range(rounds):
         parent1,parent2= tournament_selection(prompts, ea_algo.scores, 2)
@@ -155,18 +154,26 @@ class EAAlgo:
     def get_infos(self):
         return self.infos
 
-
+#
+# def tournament_selection(population, scores, num_prompts):
+#     tournament_size = 2
+#     selected_indices = []
+#     for _ in range(num_prompts):
+#         tournament_indices = random.sample(range(len(population)), tournament_size)
+#         print('?',len(scores),len(population),tournament_indices)
+#         tournament_scores = scores[tournament_indices]
+#         best_index = tournament_indices[np.argmax(tournament_scores)]
+#         selected_indices.append(best_index)
+#     return selected_indices
 def tournament_selection(population, scores, num_prompts):
     tournament_size = 2
     selected_indices = []
     for _ in range(num_prompts):
-        tournament_indices = random.sample(range(len(population)), tournament_size)
-        print('?',len(scores),len(population),tournament_indices)
+        tournament_indices = random.sample(range(len(scores)), tournament_size)  # Use len(scores) instead of len(population)
         tournament_scores = scores[tournament_indices]
         best_index = tournament_indices[np.argmax(tournament_scores)]
         selected_indices.append(best_index)
     return selected_indices
-
 
 
 def crossover_prompts(parent1, parent2, crossover_rate=0.5):
