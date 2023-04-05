@@ -48,7 +48,6 @@ def ea_evaluator(prompts, eval_template, eval_data, demos_template, few_shot_dat
         # ea_algo.update(sampled_prompts_idx, scores) todo
     return EAEvaluationResult(prompts, ea_algo.get_scores(), ea_algo.get_infos())
 def evolution(prompts, config_dic):#todo
-    print(1111)
     ea_algo = get_ea_algo(config_dic['ea_method'], len(prompts), config_dic)
     rounds = config_dic['rounds']
 
