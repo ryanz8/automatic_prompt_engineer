@@ -98,7 +98,7 @@ def simple_eval(dataset,
                 prompts,
                 eval_template='Instruction: [PROMPT]\nInput: [INPUT]\nOutput: [OUTPUT]',
                 demos_template='Input: [INPUT]\nOutput: [OUTPUT]',
-                eval_model='text-davinci-002',
+                eval_model='google/flan-t5-small',
                 num_samples=50):
     """
     Function that wraps the evaluate_prompts function to make it easier to use.
@@ -113,10 +113,9 @@ def simple_eval(dataset,
     """
     eval_template = template.EvalTemplate(eval_template)
     demos_template = template.DemosTemplate(demos_template)
-    conf = config.update_config({}, 'configs/ea.yaml')
-    conf['evaluation']['base_eval_config']['model']['gpt_config']['model'] = eval_model
+    conf = config.update_config({}, 'configs/default.yaml')
+    conf['evaluation']['model']['gpt_config']['model'] = eval_model
     conf['evaluation']['num_samples'] = min(len(dataset[0]), num_samples)
-
     res = evaluate.evalute_prompts(
         prompts, eval_template, dataset, demos_template, dataset, conf['evaluation']['method'], conf['evaluation'])
     return res
@@ -257,12 +256,11 @@ def find_prompts_ea(eval_template,
     res = ea.evolution(prompts,conf['evaluation'])
 
 
-    demo_fn= 1
     print('Finished evaluating.')
 
-    # demo_fn = evaluate.demo_function(eval_template, conf['demo'])
+    demo_fn = evaluate.demo_function(eval_template, conf['demo'])
 
-    return res, demo_fn,prompts
+    return res, demo_fn
 
 def evaluate_prompts(prompts, eval_template, eval_data, demos_template, few_shot_data, conf,
                      base_conf='configs/default.yaml'):

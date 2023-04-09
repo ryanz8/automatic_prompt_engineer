@@ -58,7 +58,11 @@ def likelihood_evaluator(prompts, eval_template, eval_data, demos_template, few_
     # Instantiate the LLM
     model = llm.model_from_config(config['model'])
 
-    log_probs, _ = model.log_probs(queries, output_indices)
+    if config['model']['gpt_config']['local_inference']:
+        # local inference doesn't return the prompt during generation, so no need to remove it
+        log_probs, _ = model.log_probs(queries, None)
+    else:
+        log_probs, _ = model.log_probs(queries, output_indices)
 
     res = LikelihoodEvaluationResult(prompts, log_probs, config['num_samples'])
 

@@ -22,7 +22,7 @@ def update_config(config, base_config='configs/default.yaml'):
 
 def simple_config(eval_model, prompt_gen_model, prompt_gen_mode, num_prompts, eval_rounds, prompt_gen_batch_size, eval_batch_size):
     """Returns a config and splits the data into sensible chunks."""
-    conf = update_config({}, 'configs/bandits.yaml')
+    conf = update_config({}, 'configs/bandits.yaml') #bandits.yaml
     conf['generation']['model']['gpt_config']['model'] = prompt_gen_model
     if prompt_gen_mode == 'insert':
         conf['generation']['model']['name'] = 'GPT_insert'

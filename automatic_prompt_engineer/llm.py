@@ -29,7 +29,7 @@ def model_from_config(config, disable_tqdm=True):
         return GPT_Insert(config, disable_tqdm=disable_tqdm)
     raise ValueError(f"Unknown model type: {model_type}")
 
-def do_predict(input_texts, model, tokenizer, n=1):
+def do_predict(input_texts, model, tokenizer, n=1, logprobs = False):
     """
     Takes in a list of text inputs and generates output text for each input using the model and tokenizer.
 
@@ -43,27 +43,53 @@ def do_predict(input_texts, model, tokenizer, n=1):
         List[str]: List of generated text.
     """
     # Encode the input texts
-    input_ids = tokenizer(input_texts, return_tensors="pt", padding=True, truncation=True).input_ids.to(model.device)
+    inputs = tokenizer(input_texts, return_tensors="pt", padding=True, truncation=True).to(model.device)
 
     # Generate output with the model
     outputs = model.generate(
-        input_ids,
+        **inputs,
         max_length=30,
         num_return_sequences=n,
         do_sample=True,
         return_dict_in_generate=True,
         output_scores=True)
 
-    # Get the generated tokens
-    generated_tokens = outputs.sequences
+    transition_scores = model.compute_transition_scores(
+        outputs.sequences, outputs.scores, normalize_logits=True
+    )
 
-    # Convert tokens to text
-    generated_texts = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)
+    # ref: https://huggingface.co/docs/transformers/main/en/main_classes/text_generation#transformers.GenerationMixin.compute_transition_scores
+    # input_length is the length of the input prompt for decoder-only models, like the GPT family, and 1 for
+    # encoder-decoder models, like BART or T5.
+    input_length = 1 if model.config.is_encoder_decoder else inputs.input_ids.shape[1]
+    generated_tokens = outputs.sequences[:, input_length:]
 
-    # Calculate log probabilities
-    # logprobs = sum([torch.log_softmax(score, dim=-1).gather(1, token.view(-1, 1)).squeeze() for score, token in zip(outputs.scores, generated_tokens)])
+    if logprobs:
 
-    return generated_texts
+        filtered_tokens = []
+        filtered_scores = []
+
+        # remove padding and eos tokens, which have a score of -inf
+        for seq_tokens, seq_scores in zip(generated_tokens, transition_scores):
+            unpadded_tokens = [token for token in seq_tokens if token not in (tokenizer.pad_token_id, tokenizer.eos_token_id)]
+            unpadded_scores = [score.cpu() for token, score in zip(seq_tokens, seq_scores) if token not in (tokenizer.pad_token_id, tokenizer.eos_token_id)]
+            
+            filtered_tokens.append(unpadded_tokens)
+            filtered_scores.append(unpadded_scores)
+
+        token_seq = [[tokenizer.decode(token_id, clean_up_tokenization_spaces=True, skip_special_tokens=False) for token_id in tokens] for tokens in filtered_tokens]
+        
+        return filtered_scores, token_seq    
+        # token_seq = [[tokenizer.decode(token_id, clean_up_tokenization_spaces = True, skip_special_tokens=False) for token_id in tokens] for tokens in generated_tokens]
+        # log_probs = [transition_scores[i].tolist() for i in range(transition_scores.shape[0])]
+        # return log_probs, token_seq
+
+    else:
+        # Convert tokens to text
+        generated_texts = tokenizer.batch_decode(generated_tokens, clean_up_tokenization_spaces = True, skip_special_tokens=True)
+
+        return generated_texts
+
 
 class LLM(ABC):
     """Abstract base class for large language models."""
@@ -267,7 +293,8 @@ class GPT_Forward(LLM):
 
         # TODO: Add local inference
         if config['local_inference']:
-            raise NotImplementedError()
+            return do_predict(text, self.model, self.tokenizer, logprobs=True)
+            # raise NotImplementedError()
         else:
             while response is None:
                 try:
